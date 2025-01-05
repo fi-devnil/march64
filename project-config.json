@@ -1,0 +1,15 @@
+{
+    "name": "march64",
+    "description": "Project march64",
+    "toolkit": "acme",
+    "main": "src/march64.asm",
+    "build": "debug",
+    "definitions": [],
+    "includes": [],
+    "args": [],
+    "assemblerFlags": [
+      "--setpc", "0800"
+    ],
+    "compiler": "",
+    "machine": "6510"
+}
