@@ -2,29 +2,12 @@
 !pseudopc $0200 {
 
 ; Screen data
-!scr "march64 v0.1", $00
-!scr "ca: $---- el: -", $00
-!scr "$1000-$1fff --", $00
-!scr "$2000-$2fff --", $00
-!scr "$3000-$3fff --", $00
-!scr "$4000-$4fff --", $00
-!scr "$5000-$5fff --", $00
-!scr "$6000-$6fff --", $00
-!scr "$7000-$7fff --", $00
-!scr "$8000-$8fff --", $00
-!scr "$9000-$9fff --", $00
-!scr "$a000-$afff --", $00
-!scr "$b000-$bfff --", $00
-!scr "$c000-$cfff --", $00
-!scr "$d000-$dfff --", $00
-!scr "$e000-$efff --", $00
-!scr "$f000-$ffff --", $ff
+!scr "march64 v0.1", $00, $00
+!scr "step: - runs: --", $00, $74 ; $74 indicates special handling for the following line
+!scr "$x000-$xfff  --", $ff
 
-; Initialize screen data
-i_sc          clc
-              lda #$01      ; set $c8 to $01 so that "BIT $c8" will not set the zero flag
-              sta $c8       ; opcode for "iny"
-              lda #<$0200   ; from address
+!zone init_screen_zone {
+init_screen   lda #<$0200   ; from address
               sta $fb
               lda #>$0200
               sta $fb+1
@@ -32,122 +15,168 @@ i_sc          clc
               sta $fd
               lda #>$0400
               sta $fd+1
+              ldx #$30     ; counter for chunk lines
               ldy #$00     ; froml
-              bcc .i_sc_l
-.i_sc_it_c    inc $fb+1
-              !byte $24   ; skip iny
-.i_sc_it      iny
-              beq .i_sc_it_c
+              jmp .loop
+.start_chunk  inx
+              cpx #$3a
+              beq .move_x
+              jmp .store_y
+.end_chunk    cpx #$06
+              beq .return
+              dec $fb
+              ldy #$00
+              jmp .loop
+.store_y      clc
+              iny
               tya
-              adc $fb     ; save y to froml
+              adc $fb     ; add y to froml
               sta $fb
-              clc
+.next_line    clc
               ldy #$00    ; reset y to $00
               lda $fd
               adc #$28    ; increase "to" by $28
               sta $fd
-              bcc .i_sc_l
+              bcc .loop
               inc $fd+1
-              clc
-.i_sc_l       lda ($fb),y
-              beq .i_sc_it
-              cmp #$ff
-              beq .i_sc_e  ; end
+              jmp .loop
+.move_x       sec
+              txa
+              sbc #$39
+              tax
+              jmp .store_y
+.write_x      txa
               sta ($fd),y
               iny
-              bne .i_sc_l
-              inc $fb+1   ; do carry for fromh
-              clc
-              bcc .i_sc_l
-.i_sc_e       rts
-
-; clear screen
-c_sc    ldx #$00
-        lda #$20
-.c_sc_l sta $0400,x
-        sta $04fa,x
-        sta $05f4,x
-        sta $06ee,x
-        inx
-        cpx #$fa
-        bne .c_sc_l
-        rts
-
-; Update chunk error label
-u_chk_err     lda #<$450
-              sta CHUNK_SCR_LINE_START_ADDR_LO
-              lda #>$450
-              sta CHUNK_SCR_LINE_START_ADDR_HI
-              lda START_ADDR_HI
-              jsr g_hi_ny
-              tay
-              lda CHUNK_SCR_LINE_START_ADDR_LO
-.u_chk_mlp    dey
-              beq .u_chk_wrt
-              clc
-              adc #$28
-              sta CHUNK_SCR_LINE_START_ADDR_LO
-              bcc .u_chk_mlp
-              clc
-              inc CHUNK_SCR_LINE_START_ADDR_HI
-              lda CHUNK_SCR_LINE_START_ADDR_LO
-              jmp .u_chk_mlp
-.u_chk_wrt    ldy #$0c    ; screen offset (12)
-              lda CHUNK_ERROR_ACCU_ADDR
-              jsr g_hi_ny
-              jsr h_to_scrc
-              sta (CHUNK_SCR_LINE_START_ADDR_LO),y
+.loop         lda ($fb),y
+              beq .store_y
+              cmp #$74
+              beq .start_chunk
+              cmp #$18
+              beq .write_x
+              cmp #$ff
+              beq .end_chunk
+              sta ($fd),y
               iny
-              lda CHUNK_ERROR_ACCU_ADDR
-              jsr g_lo_ny
-              jsr h_to_scrc
-              sta (CHUNK_SCR_LINE_START_ADDR_LO),y
-              ldy #$00    ; reset Y
-              rts
-
-; Update current element label
-u_ce          inx
-              stx $0432+4
-              rts
-
-; update current address
-;u_ca  txa
-;      pha
-;      php
-;      ldx #$05    ; screen offset starts at 5 from $0428
-;.u_ca_l_hi
-;      lda CURRENT_ADDR_HI
-;      cpx #$05
-;      beq .u_ca_hi
-;      bcs .u_ca_cmp
-;.u_ca_l_lo
-;      lda CURRENT_ADDR_LO
-;      cpx #$07
-;      beq .u_ca_hi
-;      bcs .u_ca_cmp
-;.u_ca_hi ror
-;         ror
-;         ror
-;         ror
-;.u_ca_cmp clc
-;          and #$0f
-;          cmp #$0a
-;          bcs .u_ca_le ; Is A-F
-;          adc #$30    ; Add $30 to shift into numbers
-;          jmp .u_ca_s
-;.u_ca_le  sec
-;          sbc #$09    ; Shift A-F by 9. Letter A starts at $01
-;          clc
-;.u_ca_s   sta $0428,x
-;          inx
-;          cpx #$06
-;          beq .u_ca_l_hi
-;          cpx #$07
-;          beq .u_ca_l_lo
-;          cpx #$08
-;          beq .u_ca_l_lo
-;.u_ca_end plp
-;          pla
-;          tax
-;          rts
+              jmp .loop
+.return       rts
 }
+
+!zone clear_screen_zone {
+clear_screen  ldx #$00
+              lda #$20
+.loop         sta $0400,x
+              sta $04fa,x
+              sta $05f4,x
+              sta $06ee,x
+              inx
+              cpx #$fa
+              bne .loop
+              rts
+}
+
+!zone update_chunk_error_label_zone {
+update_chunk_error_label  jsr find_current_screen_line
+                          ldy #$0d    ; screen offset (12)
+                          lda CHUNK_ERROR_ACCU_ADDR
+                          jsr get_hi_nibble
+                          jsr hex_to_scrcode
+                          sta (CHUNK_SCR_LINE_START_ADDR_LO),y
+                          iny
+                          lda CHUNK_ERROR_ACCU_ADDR
+                          jsr get_lo_nibble
+                          jsr hex_to_scrcode
+                          sta (CHUNK_SCR_LINE_START_ADDR_LO),y
+                          ldy #$00    ; reset Y
+                          rts
+
+}
+
+; Hex to screen code
+!zone hex_to_scrcode_zone {
+hex_to_scrcode  cmp #$0a
+                bcs .letter
+.number         clc
+                adc #$30
+                jmp .return
+.letter         sec
+                sbc #$09
+                clc
+.return         rts
+}
+
+!zone update_current_chunk_signs_zone {
+insert_current_chunk_signs  jsr find_current_screen_line
+                            ldy #$0c
+                            lda #$3e
+                            sta (CHUNK_SCR_LINE_START_ADDR_LO),y
+                            ldy #$0f
+                            lda #$3c
+                            sta (CHUNK_SCR_LINE_START_ADDR_LO),y
+                            ldy #$00
+                            rts
+clear_current_chunk_signs   jsr find_current_screen_line
+                            ldy #$0c
+                            lda #$20
+                            sta (CHUNK_SCR_LINE_START_ADDR_LO),y
+                            ldy #$0f
+                            sta (CHUNK_SCR_LINE_START_ADDR_LO),y
+                            ldy #$00
+                            rts
+}
+
+!zone find_current_screen_line_zone {
+find_current_screen_line  lda #<$04a0
+                  sta CHUNK_SCR_LINE_START_ADDR_LO
+                  lda #>$04a0
+                  sta CHUNK_SCR_LINE_START_ADDR_HI
+                  lda START_ADDR_HI
+                  jsr get_hi_nibble
+                  tay
+                  lda CHUNK_SCR_LINE_START_ADDR_LO
+.loop             dey
+                  beq .return
+                  clc
+                  adc #$28
+                  sta CHUNK_SCR_LINE_START_ADDR_LO
+                  bcc .loop
+                  inc CHUNK_SCR_LINE_START_ADDR_HI
+                  lda CHUNK_SCR_LINE_START_ADDR_LO
+                  jmp .loop
+.return           ldy #$00
+                  rts
+}
+
+update_current_element_label  inx
+                              stx $0456
+                              rts
+
+update_current_run_label      lda CURRENT_RUN_ACCU_ADDR
+                              jsr get_hi_nibble
+                              jsr hex_to_scrcode
+                              sta $045e
+                              lda CURRENT_RUN_ACCU_ADDR
+                              jsr get_lo_nibble
+                              jsr hex_to_scrcode
+                              sta $045e+1
+                              rts
+
+; Quick and dirty solution
+set_done_label                lda #$04
+                              sta $461
+                              lda #$0f
+                              sta $461+1
+                              lda #$0e
+                              sta $461+2
+                              lda #$05
+                              sta $461+3
+                              lda #$21
+                              sta $461+4
+
+get_hi_nibble ror         ; split byte stored in A, getting the higher 4 bits
+              ror
+              ror
+              ror
+get_lo_nibble and #$0f    ; split byte stored in A, getting the lower 4 bits
+              rts
+} ; !pseudopc
