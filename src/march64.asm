@@ -15,17 +15,23 @@ START_ADDR_HI = $fd+1
 
 CHUNK_SCR_LINE_START_ADDR_LO = $39
 CHUNK_SCR_LINE_START_ADDR_HI = $39+1
+CHUNK_CLR_LINE_START_ADDR_LO = $3b
+CHUNK_CLR_LINE_START_ADDR_HI = $3b+1
 
 CURRENT_RUN_ACCU_ADDR = $02
 CHUNK_ERROR_ACCU_ADDR = $03
+
+COLOR_BLACK = $00
+COLOR_WHITE = $01
+COLOR_GREEN = $03
+COLOR_RED = $02
 
 !src "scr.asm"
 !src "header.asm"
 
 * = HIGH_RAM_AREA
 sei
-lda #%00110100
-sta $01
+jsr enable_all_ram
 
 ; Credit to Bruce Clark @ https://codebase64.org/doku.php?id=base:practical_memory_move_routines
 movedown  lda #<SCR_RAM_AREA ; from
@@ -56,6 +62,7 @@ md3       lda ($fb),y ; move the remaining bytes
           bne md3
 
 init      jsr clear_screen
+          jsr init_colors
           jsr init_screen
           lda #$ff
           sta CURRENT_RUN_ACCU_ADDR
@@ -241,7 +248,7 @@ marchu_r1w0     lda #$ff
                 jsr .cmp_add_hi_d
                 beq .cmp_add_lo_d
                 bne marchu_r1w0
-.return rts
+.return         rts
 
 .read_byte  eor (CURRENT_ADDR_LO),y        ; check for invalid bits
             ora CHUNK_ERROR_ACCU_ADDR      ; accumulate errors
@@ -249,25 +256,27 @@ marchu_r1w0     lda #$ff
             rts
 
 ; Load next byte into zeropage
-.next_byte_carry  inc CURRENT_ADDR_HI
-                  rts
 .next_byte        clc
                   lda CURRENT_ADDR_LO
                   adc #$01
                   sta CURRENT_ADDR_LO
-                  bcs .next_byte_carry
+                  bcc .return
+                  inc CURRENT_ADDR_HI
                   rts
 
 ; Load previous byte into zeropage
-.prev_byte_borrow sec
-                  lda CURRENT_ADDR_HI
-                  sbc #$01
-                  sta CURRENT_ADDR_HI
-                  rts
 .prev_byte        sec
                   lda CURRENT_ADDR_LO
                   sbc #$01
                   sta CURRENT_ADDR_LO
-                  bcc .prev_byte_borrow
+                  bcs .return
+                  dec CURRENT_ADDR_HI
                   rts
 }
+
+enable_all_ram    lda #%00110100
+                  sta $01
+                  rts
+enable_io_ports   lda #%00110101
+                  sta $01
+                  rts

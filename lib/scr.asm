@@ -62,6 +62,24 @@ init_screen   lda #<$0200   ; from address
 .return       rts
 }
 
+!zone init_colors_zone {
+init_colors   jsr enable_io_ports
+              lda #COLOR_WHITE
+              sta $d020     ; Set border color
+              sta $d021     ; Set background color
+              lda #COLOR_BLACK
+              ldy #$00
+.loop         sta $d800,y
+              sta $d900,y
+              sta $da00,y
+              sta $db00,y
+              iny
+              bne .loop
+              jsr enable_all_ram
+              ldy #$00
+              rts
+}
+
 !zone clear_screen_zone {
 clear_screen  ldx #$00
               lda #$20
@@ -78,6 +96,18 @@ clear_screen  ldx #$00
 !zone update_chunk_error_label_zone {
 update_chunk_error_label  jsr find_current_screen_line
                           ldy #$0d    ; screen offset (12)
+                          jsr enable_io_ports
+                          lda CHUNK_ERROR_ACCU_ADDR
+                          cmp #$00
+                          bne .red
+.green                    lda #COLOR_GREEN
+!byte                     $2c         ; Skip next line
+.red                      lda #COLOR_RED
+.label                    sta (CHUNK_CLR_LINE_START_ADDR_LO),y
+                          iny
+                          sta (CHUNK_CLR_LINE_START_ADDR_LO),y
+                          dey
+                          jsr enable_all_ram
                           lda CHUNK_ERROR_ACCU_ADDR
                           jsr get_hi_nibble
                           jsr hex_to_scrcode
@@ -108,10 +138,10 @@ hex_to_scrcode  cmp #$0a
 !zone update_current_chunk_signs_zone {
 insert_current_chunk_signs  jsr find_current_screen_line
                             ldy #$0c
-                            lda #$3e
+                            lda #$3e    ; >
                             sta (CHUNK_SCR_LINE_START_ADDR_LO),y
                             ldy #$0f
-                            lda #$3c
+                            lda #$3c    ; <
                             sta (CHUNK_SCR_LINE_START_ADDR_LO),y
                             ldy #$00
                             rts
@@ -127,24 +157,31 @@ clear_current_chunk_signs   jsr find_current_screen_line
 
 !zone find_current_screen_line_zone {
 find_current_screen_line  lda #<$04a0
-                  sta CHUNK_SCR_LINE_START_ADDR_LO
-                  lda #>$04a0
-                  sta CHUNK_SCR_LINE_START_ADDR_HI
-                  lda START_ADDR_HI
-                  jsr get_hi_nibble
-                  tay
-                  lda CHUNK_SCR_LINE_START_ADDR_LO
-.loop             dey
-                  beq .return
-                  clc
-                  adc #$28
-                  sta CHUNK_SCR_LINE_START_ADDR_LO
-                  bcc .loop
-                  inc CHUNK_SCR_LINE_START_ADDR_HI
-                  lda CHUNK_SCR_LINE_START_ADDR_LO
-                  jmp .loop
-.return           ldy #$00
-                  rts
+                          sta CHUNK_SCR_LINE_START_ADDR_LO
+                          lda #>$04a0
+                          sta CHUNK_SCR_LINE_START_ADDR_HI
+                          lda START_ADDR_HI
+                          jsr get_hi_nibble
+                          tay
+                          lda CHUNK_SCR_LINE_START_ADDR_LO
+.loop                     dey
+                          beq .return
+                          clc
+                          adc #$28
+                          sta CHUNK_SCR_LINE_START_ADDR_LO
+                          bcc .loop
+                          inc CHUNK_SCR_LINE_START_ADDR_HI
+                          lda CHUNK_SCR_LINE_START_ADDR_LO
+                          jmp .loop
+.return                   lda CHUNK_SCR_LINE_START_ADDR_HI    ; Also update addresses for color ram
+                          clc
+                          adc #$d4
+                          sta CHUNK_CLR_LINE_START_ADDR_HI
+                          lda CHUNK_SCR_LINE_START_ADDR_LO
+                          sta CHUNK_CLR_LINE_START_ADDR_LO
+                          lda CHUNK_SCR_LINE_START_ADDR_LO
+                          ldy #$00
+                          rts
 }
 
 update_current_element_label  inx
@@ -162,15 +199,15 @@ update_current_run_label      lda CURRENT_RUN_ACCU_ADDR
                               rts
 
 ; Quick and dirty solution
-set_done_label                lda #$04
+set_done_label                lda #$04    ; D
                               sta $461
-                              lda #$0f
+                              lda #$0f    ; O
                               sta $461+1
-                              lda #$0e
+                              lda #$0e    ; N
                               sta $461+2
-                              lda #$05
+                              lda #$05    ; E
                               sta $461+3
-                              lda #$21
+                              lda #$21    ; !
                               sta $461+4
 
 get_hi_nibble ror         ; split byte stored in A, getting the higher 4 bits
