@@ -57,7 +57,7 @@ jobs:
       - name: Patch version
         run: sed -i -e 's/1.0.0/${{ steps.version.outputs.version }}/' lib/screen_data.asm
       - name: Build
-        run: /home/linuxbrew/.linuxbrew/Cellar/acme/0.97/acme -f plain -I lib -o march64-${{ steps.version.outputs.version }}.crt src/march64.asm
+        run: /home/linuxbrew/.linuxbrew/Cellar/acme/0.97/bin/acme -f plain -I lib -o march64-${{ steps.version.outputs.version }}.crt src/march64.asm
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
