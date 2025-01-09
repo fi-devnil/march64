@@ -17,18 +17,23 @@ If you need to test this address range then please use the awesome DesTestMAX by
 
 ## Huge thanks to the following (in no particular order):
 **Codebase64**
+
 Very useful resource for learning how to code assembly for the 6502, with useful snippets of code. I would like to especially thank Bruce Clark for their compact memory mover (see [here]()) and Csanyi Pal for their example on how to set up the cartridge headers for autostarts (see [here](https://codebase64.org/doku.php?id=base:assembling_your_own_cart_rom_image#cbm80_autostart_cartridge_developed_with_dreamass)).
 
 **Lemon64**
+
 Many a problem was solved by finding a thread on Lemon64, again many times with useful code snippets. Visit lemon64 [here](https://www.lemon64.com).
 
 **David Giller**
+
 His xtramtest (available [here](https://github.com/ki3v/xtramtest)) was a huge help in how to structure a project like this in assembly.
 
 **Adrian Black**
+
 Watching his videos about C64 repair gave me the idea to try and create this. You can watch his videos [here](https://www.youtube.com/@adriansdigitalbasement).
 
 **Everyone else**
+
 I most likely forgot someone here so a huge thank you to the entire community!
 
 ## License
