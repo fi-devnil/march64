@@ -12,6 +12,7 @@
     ],
     "args": [],
     "assemblerFlags": [
+      "-f", "plain"
     ],
     "compiler": "",
     "machine": "6510"

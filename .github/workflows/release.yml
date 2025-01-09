@@ -1,0 +1,67 @@
+on:
+  workflow_dispatch:
+    inputs:
+      increase-major:
+        type: boolean
+        default: false
+        required: false
+      increase-minor:
+        type: boolean
+        default: false
+        required: false
+      increase-patch:
+        type: boolean
+        default: true
+        required: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@4.2.2
+      - name: Install ACME
+        uses: fi-devnil/setup-acme-assembler@v1.0.0
+      - name: Get Next Version
+        id: version
+        run: |
+          CURRENT_VERSION=$(git tag --sort=v:refname | tail -1)
+          if [[ "$CURRENT_VERSION" = "" ]]; then
+              MAJOR="1"
+              MINOR="0"
+              PATCH="0"
+          else
+              MAJOR=$(echo "$CURRENT_VERSION" | cut -d'.' -f1)
+              MINOR=$(echo "$CURRENT_VERSION" | cut -d'.' -f2)
+              PATCH=$(echo "$CURRENT_VERSION" | cut -d'.' -f3)
+
+              if [[ "${{ inputs.increase-major }}" == "true" ]]; then
+                (( MAJOR++ ))
+              fi
+              if [[ "${{ inputs.increase-minor }}" == "true" ]]; then
+                (( MINOR++ ))
+              fi
+              if [[ "${{ inputs.increase-patch }}" == "true" ]]; then
+                (( PATCH++ ))
+              fi
+          fi
+
+          echo version="$MAJOR.$MINOR.$PATCH" >> $GITHUB_OUTPUT
+      - name: Patch version
+        run: sed -i -e 's/1.0.0/${{ steps.version.outputs.version }}/' lib/screen_data.asm
+      - name: Build
+        run: acme -f plain -I lib -o march64-${{ steps.version.outputs.version }}.crt src/march64.asm
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: March64
+          tag_name: ${{ steps.version.outputs.version }}
+          files: march64-${{ steps.version.outputs.version }}.crt
+          generate_release_notes: true
+          make_latest: true
+      
