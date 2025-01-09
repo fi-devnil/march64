@@ -1,3 +1,5 @@
+name: Release
+
 on:
   workflow_dispatch:
     inputs:
@@ -24,7 +26,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@4.2.2
+      - uses: actions/checkout@v4
       - name: Install ACME
         uses: fi-devnil/setup-acme-assembler@v1.0.0
       - name: Get Next Version
