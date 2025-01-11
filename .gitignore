@@ -1,5 +1,6 @@
 # git ignores
 *~
+.DS_Store
 build
 .vscode/c_cpp_properties.json
 .vscode/settings.json
