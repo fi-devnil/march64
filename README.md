@@ -15,6 +15,16 @@ Testing the first 4k of memory ($0000-$0fff) is slightly more complicated.
 
 If you need to test this address range then please use the awesome DesTestMAX by Factor of Matt, available [here](https://factorofmatt.com/destestmax).
 
+## How to build
+
+This project is built using the ACME assembler.
+
+```
+acme -f plain -o march64.crt -I lib src/march64.asm
+```
+
+You can also download a pre-built crt file from the Releases section.
+
 ## Huge thanks to the following (in no particular order):
 **Codebase64**
 
