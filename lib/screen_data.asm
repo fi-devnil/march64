@@ -1,5 +1,5 @@
 .screen_data_rom_start
-!scr "march64 v1.0.0", $00, $00
+!scr "march64 vx.y.z", $00, $00
 !scr "step: - runs: --", $00, $00
 !scr "$1000-$1fff  --", $00
 !scr "$2000-$2fff  --", $00
@@ -17,6 +17,6 @@
 !scr "$e000-$efff  --", $00
 !scr "$f000-$ffff  --", $00
 !byte $00, $00, $00, $00, $00
-!scr "https://github.com/fi-devnil/march64"
+!scr "github.com/fi-devnil/march64"
 !byte $ff
 .screen_data_rom_end
