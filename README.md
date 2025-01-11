@@ -3,7 +3,15 @@
 
 March U memory test for the Commodore 64.
 
+Developed using the VS64 extension for VS Code and the ACME assembler.
+
 This is my first ever program written in any assembly language so I do apologize for any weird or frankly terrible code.
+
+I have tested this using VICE and my C64 Assy. 250425 using a Kung Fu Flash.
+
+<img src="img/screenshot.png" width=50%>
+
+*Note: Screenshot is from VICE*
 
 ## What does it do?
 
