@@ -1,39 +1,77 @@
-START_ADDR = $1000
-CHUNK_SIZE = $1000
-MAX_RUNS = $ff
+.const N0 = $40
+.const N1 = $41
+.const N2 = $42
+.const N3 = $43
+.const N4 = $44
+.const N5 = $45
+.const N6 = $46
+.const N7 = $47
+.const N8 = $48
+.const N9 = $49
+.const LA = $4a
+.const LB = $4b
+.const LC = $4c
+.const LD = $4d
+.const LE = $4e
+.const LF = $4f
+.const LG = $50
+.const LH = $51
+.const LI = $52
+.const LL = $53
+.const LM = $54
+.const LN = $55
+.const LR = $56
+.const LS = $57
+.const LT = $58
+.const LU = $59
+.const LV = $5a
+.const LO = $5b
+.const LP = $5c
+.const S1 = $5d // $
+.const S2 = $5e // -
+.const S3 = $5f // /
+.const S4 = $60 // >
+.const S5 = $61 // <
+.const S6 = $62 // .
+.const S7 = $63 // :
+.const BL = $64 // Blank
 
-SCREEN_DATA_FROM_ROM_ADDR = .screen_data_rom_start
-SCREEN_DATA_TO_RAM_ADDR   = $0400
-SCREEN_OPS_FROM_ROM_ADDR  = .screen_ops_rom_start
-SCREEN_OPS_TO_RAM_ADDR    = $0200
-SCREEN_OPS_ROM_AREA_SIZE  = .screen_ops_rom_end - .screen_ops_rom_start
-MARCHU_OPS_FROM_ROM_ADDR  = .marchu_ops_rom_start
-MARCHU_OPS_TO_RAM_ADDR    = $0800
-MARCHU_OPS_ROM_AREA_SIZE  = .marchu_ops_rom_end - .marchu_ops_rom_start
+.const START_ADDR = $1000
+.const CHUNK_SIZE = $1000
+.const MAX_RUNS = $ff
 
-CURRENT_ADDR_LO = $fb
-CURRENT_ADDR_HI = $fb+1
-START_ADDR_LO = $fd
-START_ADDR_HI = $fd+1
+.const SCREEN_DATA_FROM_ROM_ADDR = screen_data_rom_start
+.const SCREEN_DATA_TO_RAM_ADDR   = $0400
+.const SCREEN_OPS_FROM_ROM_ADDR  = screen_ops_rom_start
+.const SCREEN_OPS_TO_RAM_ADDR    = $0200
+.const SCREEN_OPS_ROM_AREA_SIZE  = screen_ops_rom_end - screen_ops_rom_start
+.const MARCHU_OPS_FROM_ROM_ADDR  = marchu_ops_rom_start
+.const MARCHU_OPS_TO_RAM_ADDR    = $0800
+.const MARCHU_OPS_ROM_AREA_SIZE  = marchu_ops_rom_end - marchu_ops_rom_start
 
-CHUNK_SCR_LINE_START_ADDR_LO = $39
-CHUNK_SCR_LINE_START_ADDR_HI = $39+1
-CHUNK_CLR_LINE_START_ADDR_LO = $3b
-CHUNK_CLR_LINE_START_ADDR_HI = $3b+1
+.const CURRENT_ADDR_LO = $fb
+.const CURRENT_ADDR_HI = $fb+1
+.const START_ADDR_LO = $fd
+.const START_ADDR_HI = $fd+1
 
-CURRENT_RUN_ACCU_ADDR = $02
-CHUNK_ERROR_ACCU_ADDR = $03
+.const CHUNK_SCR_LINE_START_ADDR_LO = $39
+.const CHUNK_SCR_LINE_START_ADDR_HI = $39+1
+.const CHUNK_CLR_LINE_START_ADDR_LO = $3b
+.const CHUNK_CLR_LINE_START_ADDR_HI = $3b+1
 
-COLOR_BLACK = $00
-COLOR_WHITE = $01
-COLOR_GREEN = $03
-COLOR_RED = $02
+.const CURRENT_RUN_ACCU_ADDR = $02
+.const CHUNK_ERROR_ACCU_ADDR = $03
 
-!src "rom/header.asm"
-!src "rom/init.asm"
-!src "screen_data.asm"
-!src "screen_ops.asm"
-!src "marchu_ops.asm"
+.const COLOR_BLACK = $00
+.const COLOR_WHITE = $01
+.const COLOR_GREEN = $03
+.const COLOR_RED = $02
 
-.end
-!skip $a000 - .end
+#import "rom/header.asm"
+#import "rom/init.asm"
+#import "screen_data.asm"
+#import "screen_ops.asm"
+#import "marchu_ops.asm"
+
+.label end = *
+.fill $a000 - end, $00

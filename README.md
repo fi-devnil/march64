@@ -3,7 +3,7 @@
 
 March U memory test for the Commodore 64.
 
-Developed using the VS64 extension for VS Code and the ACME assembler.
+Developed using the VS64 extension for VS Code and Kick assembler.
 
 This is my first ever program written in any assembly language so I do apologize for any weird or frankly terrible code.
 
@@ -15,7 +15,7 @@ I have tested this using VICE and my C64 Assy. 250425 using a Kung Fu Flash.
 
 ## What does it do?
 
-It tests the address range \$1000-\$ffff. You can read more about march tests and their differences [here](https://www.researchgate.net/publication/3349024_March_U_A_test_for_unlinked_memory_faults).
+It tests the address range \$1000-\$ffff in 4096 byte chunks. You can read more about march tests and their differences [here](https://www.researchgate.net/publication/3349024_March_U_A_test_for_unlinked_memory_faults).
 
 ## Why not test the entire 64k?
 
@@ -25,10 +25,10 @@ If you need to test this address range then please use the awesome DesTestMAX by
 
 ## How to build
 
-This project is built using the ACME assembler.
+This project is built using Kick assembler.
 
 ```
-acme -f plain -o march64.crt -I lib src/march64.asm
+java -jar KickAss.jar -binfile -libdir lib/ -o march64.crt src/march64.asm
 ```
 
 You can also download a pre-built crt file from the Releases section.
