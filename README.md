@@ -1,4 +1,4 @@
-# Archived
+# !!!ARCHIVED!!!
 
 This project has been archived and will not be updated and using it should be avoided. It has a bug that causes it to only scan a small part of the memory. 
 A partial fix has been started in the 1.1.0 branch but I see no need to further update this project since better solutions exist.
